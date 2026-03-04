@@ -1,7 +1,5 @@
-# Areeba Ilyas Qureshi
+# Max Mustermann
 ## Climate & Sustainability Strategist | Environmental Engineer
-
-**Location:** Munich, Germany
 
 ---
 
@@ -12,7 +10,7 @@ Results-driven Environmental Engineer and Sustainability Strategist with over 3 
 
 ### Work Experience
 
-**Sustainability Consultant** at Global Climate GmbH (May 2023 – Present)
+**Sustainability Consultant** at Local Environment GmbH (May 2023 – Present)
 - Key account management for 10-15 global manufacturing corporations
 - Authored 25+ sustainability reports (CSRD, ESRS, GRI, TCFD)
 - Developed Net Zero roadmaps and SBTi targets
@@ -27,14 +25,14 @@ Results-driven Environmental Engineer and Sustainability Strategist with over 3 
 - Led international team of 10, managed CRM with HubSpot
 - Built task management tools using Excel
 
-**Intern – Construction Management** at NESPAK (Oct 2017 – Nov 2017)
+**Intern – Construction Management** at PAKPAK (Oct 2017 – Nov 2017)
 - Urban planning research and infrastructure design using AutoCAD
 
 ---
 
 ### Education
 - MSc Environmental Engineering, Technical University of Munich (2019–2023)
-- BEng Urban and Infrastructure Planning, NED University (2014–2018)
+- BEng Urban and Infrastructure Planning, MED University (2014–2018)
 
 ### Skills
 CSRD, ESRS, GRI, TCFD, SBTi, GHG Protocol, ISO 14001, ISO 14064, LCA, Carbon Accounting, MATLAB, Python, Power BI, AutoCAD, ArcGIS, HubSpot, Agile Project Management, Stakeholder Management
