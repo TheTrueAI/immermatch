@@ -43,7 +43,7 @@ def _load_existing_labels(path: Path) -> dict[str, dict]:
     existing: dict[str, dict] = {}
     if not path.exists():
         return existing
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
             continue
@@ -60,7 +60,7 @@ def _collect_jobs(cache_dir: Path) -> list[dict]:
     jobs: list[dict] = []
     for jobs_file in sorted(cache_dir.glob("*/jobs.json")):
         try:
-            data = json.loads(jobs_file.read_text())
+            data = json.loads(jobs_file.read_text(encoding="utf-8"))
         except (json.JSONDecodeError, OSError):
             continue
         for key, job in data.get("jobs", {}).items():
@@ -117,7 +117,7 @@ def main() -> None:
 
     # Append new entries to the labels file
     args.labels.parent.mkdir(parents=True, exist_ok=True)
-    with args.labels.open("a") as f:
+    with args.labels.open("a", encoding="utf-8") as f:
         for line in lines:
             f.write(line + "\n")
 

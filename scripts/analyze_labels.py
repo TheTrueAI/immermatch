@@ -26,7 +26,7 @@ CATEGORIES = ("verified", "aggregator", "unverified", "blocked")
 
 def _load_labels(path: Path) -> list[dict]:
     entries: list[dict] = []
-    for line in path.read_text().splitlines():
+    for line in path.read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if not line:
             continue
@@ -88,11 +88,13 @@ def _print_domain_suggestions(entries: list[dict]) -> None:
     domain_sources: dict[str, set[str]] = defaultdict(set)
 
     for e in misclassified:
-        for domain in e.get("domains", []):
+        domains = e.get("domains") or ["?"]
+        for domain in domains:
             domain_labels[domain][e["label"]] += 1
         for source in e.get("source_names", []):
             if source:
-                domain_sources[e.get("domains", ["?"])[0] if e.get("domains") else "?"].add(source)
+                for domain in domains:
+                    domain_sources[domain].add(source)
 
     print("\n=== Domain Suggestions (from misclassified jobs) ===\n")
 

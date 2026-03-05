@@ -1,5 +1,10 @@
 When writing tests for a module in `immermatch/`:
 
+Environment note:
+- No manual virtualenv activation is needed when using Makefile targets (`make test`, `make check`, etc.); the Makefile handles it.
+- Only activate `.venv` manually for direct Python/pip commands run outside Make targets.
+- For formatting, use `make format` (do not run direct `ruff format ...` commands).
+
 1. **File naming:** Create `tests/test_<module>.py`
 2. **Imports:** Import the module under test and fixtures from `conftest.py`
 3. **Mock all external services** — never call real APIs:
@@ -18,7 +23,7 @@ When writing tests for a module in `immermatch/`:
 7. **Run after writing:**
    ```bash
    make test
-   # Optional focused run when iterating quickly:
-   # source .venv/bin/activate && pytest tests/test_<module>.py -x -q
+   # Optional focused run when iterating quickly (direct pytest outside make):
+   # .venv/bin/pytest tests/test_<module>.py -x -q
    # Before finishing a change, run: make check
    ```

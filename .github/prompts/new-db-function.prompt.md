@@ -1,5 +1,10 @@
 When adding a new function to `immermatch/db.py`:
 
+Environment note:
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Only activate `.venv` manually for direct Python/pip commands run outside Make targets.
+- For formatting, use `make format` (do not run direct `ruff format ...` commands).
+
 1. **Always use `get_admin_client()`** for DB operations (bypasses RLS)
 2. **Never use the anon client** (`get_client()`) for writes
 3. **Log subscriber UUIDs**, never email addresses:

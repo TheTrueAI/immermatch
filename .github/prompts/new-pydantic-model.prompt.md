@@ -1,5 +1,10 @@
 When adding a new Pydantic model to `immermatch/models.py`:
 
+Environment note:
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Only activate `.venv` manually for direct Python/pip commands run outside Make targets.
+- For formatting, use `make format` (do not run direct `ruff format ...` commands).
+
 1. **Follow existing patterns** — use `BaseModel` with `Field()` descriptions:
    ```python
    class MyModel(BaseModel):

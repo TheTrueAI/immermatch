@@ -3,6 +3,10 @@
 ## Mission
 Maintain and improve search quality, freshness, and provider reliability for Immermatch job discovery.
 
+## Environment
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Activate `.venv` manually only for direct Python/pip commands run outside Make targets.
+
 ## Canonical Code Scope
 - `immermatch/search_api/search_provider.py`
 - `immermatch/search_api/search_agent.py`
@@ -43,6 +47,7 @@ Maintain and improve search quality, freshness, and provider reliability for Imm
 	- `make check` (full gate)
 	- `make test` (tests)
 	- `make lint` (ruff)
+	- `make format` (format code; prefer this over direct `ruff format ...` commands)
 	- `make typecheck` (mypy)
 
 ## Decision Log Template

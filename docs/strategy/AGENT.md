@@ -3,6 +3,10 @@
 ## Mission
 Translate product goals into an executable roadmap balancing launch speed, user value, and monetization.
 
+## Environment
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Activate `.venv` manually only for direct Python/pip commands run outside Make targets.
+
 ## Canonical Strategy Docs
 - `docs/strategy/ROADMAP.md`
 - Additional market/positioning analyses in `docs/strategy/`
@@ -23,6 +27,7 @@ Translate product goals into an executable roadmap balancing launch speed, user 
 	- `make check` (full gate)
 	- `make test` (tests)
 	- `make lint` (ruff)
+	- `make format` (format code; prefer this over direct `ruff format ...` commands)
 	- `make typecheck` (mypy)
 
 ## Decision Log Template

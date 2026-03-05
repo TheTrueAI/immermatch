@@ -24,11 +24,11 @@ from ..models import ApplyOption, JobListing
 
 def _load_blocked_portals() -> set[str]:
     path = Path(__file__).parent / "blocked_portals.txt"
-    return {
-        line.strip().lower()
-        for line in path.read_text().splitlines()
-        if line.strip() and not line.strip().startswith("#")
-    }
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError:
+        return set()
+    return {line.strip().lower() for line in text.splitlines() if line.strip() and not line.strip().startswith("#")}
 
 
 BLOCKED_PORTALS: set[str] = _load_blocked_portals()
@@ -278,6 +278,28 @@ def parse_job_results(results: dict) -> list[JobListing]:
     """Parse job listings from a SerpApi response dict."""
     jobs: list[JobListing] = []
 
+    def _normalize_link(link: str) -> str:
+        stripped = link.strip()
+        if not stripped:
+            return ""
+        if "://" not in stripped:
+            return f"https://{stripped.lstrip('/')}"
+        return stripped
+
+    def _extract_domain(link: str) -> str:
+        netloc = urlparse(_normalize_link(link)).netloc.lower().strip()
+        if netloc.startswith("www."):
+            return netloc[4:]
+        return netloc
+
+    def _domain_matches(domain: str, token: str) -> bool:
+        token = token.strip().lower().lstrip(".")
+        if not domain or not token:
+            return False
+        if "." in token:
+            return domain == token or domain.endswith(f".{token}")
+        return token in domain.split(".")
+
     for job_data in results.get("jobs_results", []):
         posted_at = job_data.get("detected_extensions", {}).get("posted_at", "")
         if _is_stale(posted_at):
@@ -297,11 +319,16 @@ def parse_job_results(results: dict) -> list[JobListing]:
         for option in job_data.get("apply_options", []):
             if "title" not in option or "link" not in option:
                 continue
-            domain = urlparse(option["link"]).netloc.lower()
-            if any(blocked in domain for blocked in BLOCKED_PORTALS):
+            normalized_link = _normalize_link(option["link"])
+            if not normalized_link:
                 continue
-            apply_options.append(ApplyOption(source=option["title"], url=option["link"]))
-            if any(tp in domain for tp in _TRUSTED_PORTALS):
+            domain = _extract_domain(normalized_link)
+            if not domain:
+                continue
+            if any(_domain_matches(domain, blocked) for blocked in BLOCKED_PORTALS):
+                continue
+            apply_options.append(ApplyOption(source=option["title"], url=normalized_link))
+            if any(_domain_matches(domain, trusted) for trusted in _TRUSTED_PORTALS):
                 has_trusted = True
             source_lower = option["title"].lower()
             if "career" in source_lower or "company" in source_lower:

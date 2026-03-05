@@ -32,8 +32,12 @@ class TestBlockedPortals:
             assert entry.strip() == entry
             assert len(entry) > 0
 
+    def test_missing_file_returns_empty_set(self):
+        with patch("immermatch.search_api.serpapi_provider.Path.read_text", side_effect=FileNotFoundError):
+            assert _load_blocked_portals() == set()
 
-class TestIsStaleness:
+
+class TestIsStale:
     @pytest.mark.parametrize(
         "posted_at",
         [
@@ -91,6 +95,27 @@ class TestReliabilityClassification:
         jobs = parse_job_results(results)
         assert len(jobs) == 1
         assert jobs[0].reliability == "aggregator"
+
+    def test_schemeless_trusted_portal_gets_aggregator(self):
+        results = self._make_results(
+            [
+                {"title": "LinkedIn", "link": "linkedin.com/jobs/1"},
+            ]
+        )
+        jobs = parse_job_results(results)
+        assert len(jobs) == 1
+        assert jobs[0].reliability == "aggregator"
+        assert jobs[0].apply_options[0].url == "https://linkedin.com/jobs/1"
+
+    def test_substring_domain_does_not_count_as_trusted(self):
+        results = self._make_results(
+            [
+                {"title": "LinkedIn", "link": "https://notlinkedin.com/jobs/1"},
+            ]
+        )
+        jobs = parse_job_results(results)
+        assert len(jobs) == 1
+        assert jobs[0].reliability == "unverified"
 
     def test_company_career_gets_aggregator(self):
         results = self._make_results(
