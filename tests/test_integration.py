@@ -161,51 +161,31 @@ SUSTAINABILITY_PROFILE_JSON = json.dumps(
 
 QUERIES_JSON = json.dumps(
     [
-        "Senior Software Engineer München",
-        "Backend Developer München",
-        "Platform Engineer München",
-        "Python Developer München",
-        "Go Developer München",
-        "Softwareentwickler München",
-        "DevOps Engineer München",
-        "Cloud Engineer München",
-        "Tech Lead München",
-        "Kubernetes Engineer München",
-        "Software Architect München",
-        "Backend Developer remote",
-        "Python Developer Deutschland",
-        "Microservices Engineer",
-        "SaaS Developer",
-        "FinTech Developer",
-        "Full Stack Developer",
-        "Infrastructure Engineer",
-        "Site Reliability Engineer",
-        "Engineering Manager",
+        "Software Engineering München",
+        "Backend Entwicklung München",
+        "Python München",
+        "Cloud Infrastructure München",
+        "DevOps München",
+        "Softwareentwicklung München",
+        "Kubernetes München",
+        "Microservices München",
+        "Platform Engineering München",
+        "Go Entwicklung München",
     ]
 )
 
 SUSTAINABILITY_QUERIES_JSON = json.dumps(
     [
-        "Sustainability Consultant München",
-        "ESG Analyst München",
-        "Nachhaltigkeitsberater München",
-        "Environmental Engineer München",
-        "Climate Strategy München",
+        "Nachhaltigkeit München",
+        "ESG München",
+        "Sustainability München",
+        "Klimaschutz München",
+        "CSRD München",
+        "Umweltmanagement München",
         "Carbon Accounting München",
-        "CSRD Berater München",
-        "LCA Consultant München",
-        "Sustainability Manager München",
-        "ESG Reporting München",
-        "Sustainability Consultant remote",
-        "Environmental Engineer Deutschland",
-        "GHG Analyst",
-        "Circular Economy Consultant",
-        "Climate Risk Analyst",
-        "Net Zero Strategist",
-        "Sustainability Reporting",
-        "Environmental Consultant",
-        "Green Energy Analyst",
-        "ISO 14001 Auditor",
+        "LCA München",
+        "GHG München",
+        "Circular Economy München",
     ]
 )
 
@@ -360,7 +340,7 @@ class TestFullPipelineTechCV:
                 MOCK_JOBS[2:4],  # query 2 → 2 jobs
                 MOCK_JOBS[4:],  # query 3 → 1 job
             ]
-            + [[] for _ in range(17)]
+            + [[] for _ in range(7)]
         )  # remaining queries → empty
 
         # evaluator_agent.call_gemini: 5 eval calls + 1 summary call
@@ -376,7 +356,7 @@ class TestFullPipelineTechCV:
         # --- Act: Stage 2 — Queries ---
         queries = generate_search_queries(mock_client, profile, "Munich, Germany", provider=_query_provider())
         assert isinstance(queries, list)
-        assert len(queries) == 20
+        assert len(queries) == 10
 
         # --- Act: Stage 3 — Search ---
         jobs = search_all_queries(
@@ -443,7 +423,7 @@ class TestFullPipelineSustainabilityCV:
         ]
         mock_provider = MagicMock()
         mock_provider.name = "test"
-        mock_provider.search.side_effect = [sustainability_jobs] + [[] for _ in range(19)]
+        mock_provider.search.side_effect = [sustainability_jobs] + [[] for _ in range(9)]
 
         eval_responses = [
             json.dumps({"score": 88, "reasoning": "Excellent CSRD/GHG match.", "missing_skills": []}),
@@ -459,7 +439,7 @@ class TestFullPipelineSustainabilityCV:
         assert any("Sustainability" in r for r in profile.roles)
 
         queries = generate_search_queries(mock_client, profile, "Munich, Germany", provider=_query_provider())
-        assert len(queries) == 20
+        assert len(queries) == 10
 
         jobs = search_all_queries(
             queries,
@@ -542,7 +522,7 @@ class TestQueryGeneration:
         profile = profile_candidate(mock_client, tech_cv_text)
         queries = generate_search_queries(mock_client, profile, "Munich, Germany", provider=_query_provider())
 
-        assert len(queries) == 20
+        assert len(queries) == 10
         assert all(isinstance(q, str) for q in queries)
         assert all(len(q) > 0 for q in queries)
 
@@ -736,7 +716,7 @@ class TestDataFlowBetweenStages:
 
         mock_provider = MagicMock()
         mock_provider.name = "test"
-        mock_provider.search.side_effect = [MOCK_JOBS[:1]] + [[] for _ in range(19)]
+        mock_provider.search.side_effect = [MOCK_JOBS[:1]] + [[] for _ in range(9)]
 
         # Stage 1: Profile — verify CV text was sent to Gemini
         profile = profile_candidate(mock_client, tech_cv_text)
