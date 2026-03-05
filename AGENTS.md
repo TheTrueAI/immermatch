@@ -6,6 +6,11 @@ This document defines the persona, context, and instruction sets for the AI agen
 **Model:** gemini-3-flash-preview
 **Package:** `google-genai` (not the deprecated `google.generativeai`)
 
+## Environment Guidance (All Agents)
+
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Activate `.venv` manually only for direct Python/pip commands run outside Make targets.
+
 ---
 
 ## 1. The Profiler (CV Parser & Summarizer)
@@ -605,6 +610,7 @@ Common tasks are wrapped in a `Makefile` at the repo root:
 make check      # pytest + ruff lint + ruff format + mypy (the full gate)
 make test        # pytest only
 make lint        # ruff check --fix + ruff format --check
+make format      # ruff format (preferred over direct `ruff format ...` commands)
 make typecheck   # mypy
 make run         # streamlit run
 make coverage    # pytest --cov with term-missing report

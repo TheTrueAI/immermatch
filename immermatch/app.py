@@ -2,6 +2,7 @@
 
 import contextlib
 import hashlib
+import html
 import logging
 import os
 import re
@@ -413,8 +414,16 @@ def _render_job_card(ej: EvaluatedJob) -> None:
 
         with center:
             label, css, tooltip = _RELIABILITY_INFO.get(ej.job.reliability, ("", "", ""))
-            badge_html = f' <span class="reliability-badge {css}" title="{tooltip}">{label}</span>' if label else ""
-            st.markdown(f"**{ej.job.title}** @ {ej.job.company_name}{badge_html}", unsafe_allow_html=True)
+            safe_title = html.escape(ej.job.title, quote=True)
+            safe_company = html.escape(ej.job.company_name, quote=True)
+            safe_label = html.escape(label, quote=True)
+            safe_tooltip = html.escape(tooltip, quote=True)
+            badge_html = (
+                f' <span class="reliability-badge {css}" title="{safe_tooltip}" tabindex="0" aria-label="{safe_tooltip}">{safe_label}</span>'
+                if label
+                else ""
+            )
+            st.markdown(f"<strong>{safe_title}</strong> @ {safe_company}{badge_html}", unsafe_allow_html=True)
             st.caption(f"📍 {ej.job.location}" + (f"  •  🕐 {ej.job.posted_at}" if ej.job.posted_at else ""))
             st.markdown(ej.evaluation.reasoning)
             if missing:

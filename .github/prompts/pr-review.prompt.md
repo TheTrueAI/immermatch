@@ -1,5 +1,10 @@
 Fetch and address review comments from the most recent PR on the current branch.
 
+Environment note:
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Only activate `.venv` manually for direct Python/pip commands run outside Make targets.
+- For formatting, use `make format` (do not run direct `ruff format ...` commands).
+
 ## Execution policy
 
 - Run all `gh` commands (or equivalent GitHub MCP calls) immediately without asking for confirmation. Prefer MCP calls for efficiency when possible.

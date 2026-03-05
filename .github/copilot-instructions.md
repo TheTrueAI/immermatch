@@ -2,7 +2,8 @@
 
 ## Environment
 
-- **Always** activate the virtual environment first: `source .venv/bin/activate`
+- No manual virtualenv activation is needed when using Makefile targets (`make check`, `make test`, etc.); the Makefile handles it.
+- Only activate `.venv` manually for direct Python/pip commands run outside Make targets.
 - Python 3.10+, all dependencies installed in `.venv`
 - Gemini model: `gemini-3-flash-preview` via `google-genai` package (NOT the deprecated `google.generativeai`)
 
@@ -18,6 +19,7 @@ Prefer Makefile targets for routine workflows:
 - `make check` (full gate)
 - `make test` (tests)
 - `make lint` (ruff)
+- `make format` (format code; prefer this over direct `ruff format ...` commands)
 - `make typecheck` (mypy)
 - `make run` (Streamlit app)
 - `make coverage` (coverage report)

@@ -1,8 +1,10 @@
 """Lightweight link validation for job apply URLs.
 
-Fires concurrent HEAD requests against apply_option URLs to detect dead links
-(404/410/403) and redirect-to-homepage patterns.  Only checks non-verified
-listings — Bundesagentur links are trusted by default.
+When used via :func:`validate_jobs`, fires concurrent HEAD requests at the job
+level (one task per job) to detect dead links (404/410/403) and
+redirect-to-homepage patterns. Within a single job, apply_option URLs are
+checked sequentially. Only checks non-verified listings — Bundesagentur links
+are trusted by default.
 """
 
 from __future__ import annotations
@@ -90,9 +92,9 @@ def _validate_one(job: JobListing, client: httpx.Client) -> JobListing | None:
 def validate_jobs(jobs: list[JobListing]) -> list[JobListing]:
     """Validate apply URLs for all non-verified jobs.
 
-    Fires HEAD requests concurrently to check for dead links and
-    redirect-to-homepage patterns.  Returns only jobs with at least
-    one live apply link.
+    Fires HEAD requests concurrently at the job level to check for dead links
+    and redirect-to-homepage patterns. Within each job, apply_option URLs are
+    checked sequentially. Returns only jobs with at least one live apply link.
     """
     needs_check = [j for j in jobs if j.reliability != "verified"]
     if not needs_check:
@@ -100,6 +102,7 @@ def validate_jobs(jobs: list[JobListing]) -> list[JobListing]:
 
     validated: list[JobListing] = []
     dropped = 0
+    checked_results: dict[int, JobListing | None] = {}
 
     with (
         httpx.Client(
@@ -107,17 +110,23 @@ def validate_jobs(jobs: list[JobListing]) -> list[JobListing]:
             follow_redirects=False,
             headers={"User-Agent": USER_AGENT},
         ) as client,
-        ThreadPoolExecutor(max_workers=min(_MAX_WORKERS, len(jobs))) as pool,
+        ThreadPoolExecutor(max_workers=min(_MAX_WORKERS, len(needs_check))) as pool,
     ):
-        futures = {pool.submit(_validate_one, job, client): job for job in jobs}
-        for future in futures:
-            result = future.result()
-            if result is not None:
-                validated.append(result)
-            else:
-                dropped += 1
+        tasks = [(job, pool.submit(_validate_one, job, client)) for job in needs_check]
+        for job, future in tasks:
+            checked_results[id(job)] = future.result()
+
+    for job in jobs:
+        if job.reliability == "verified":
+            validated.append(job)
+            continue
+        result = checked_results.get(id(job))
+        if result is None:
+            dropped += 1
+        else:
+            validated.append(result)
 
     if dropped:
-        logger.info("Link validation dropped %d/%d jobs", dropped, len(jobs))
+        logger.info("Link validation dropped %d/%d jobs", dropped, len(needs_check))
 
     return validated

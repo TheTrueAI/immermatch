@@ -3,7 +3,8 @@
 ## Environment
 
 ```bash
-source .venv/bin/activate   # ALWAYS required before any command
+# No manual activation needed for Makefile targets (`make check`, `make test`, etc.).
+# Activate `.venv` only when running direct Python/pip commands outside `make`.
 ```
 
 - Python 3.10+, all dependencies in `.venv`
@@ -19,6 +20,7 @@ Prefer Makefile targets for daily workflow:
 - `make check` (full gate)
 - `make test` (tests only)
 - `make lint` (ruff lint/format check)
+- `make format` (format code; prefer this over direct `ruff format ...` commands)
 - `make typecheck` (mypy)
 - `make run` (Streamlit)
 - `make coverage` (coverage report)
