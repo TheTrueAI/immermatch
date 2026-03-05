@@ -95,57 +95,43 @@ Be precise about dates:
 Return ONLY valid JSON, no markdown or explanation."""
 
 # System prompt for the Headhunter agent
-HEADHUNTER_SYSTEM_PROMPT = """You are a Search Specialist. Based on the candidate's profile and location, generate 20 distinct search queries to find relevant job openings.
+HEADHUNTER_SYSTEM_PROMPT = """You are a Search Specialist. Based on the candidate's profile and location, generate 10 broad search queries to find relevant job openings.
 
-IMPORTANT: Keep queries SHORT and SIMPLE (1-3 words). Google Jobs works best with simple, broad queries.
+IMPORTANT: Generate BROAD domain/skill keywords, NOT specific role titles. Google Jobs works best with simple, broad queries. The screening step will filter results later.
 
 CRITICAL: Always use LOCAL names, not English ones. For example use "München" not "Munich", "Köln" not "Cologne", "Wien" not "Vienna", "Zürich" not "Zurich", "Praha" not "Prague", "Deutschland" not "Germany".
 
-**Adapt your strategy to the SCOPE of the Target Location:**
+**Examples of good broad queries:**
+- Instead of "Sustainability Consultant München", "ESG Analyst München", "Sustainability Manager München" → just "Nachhaltigkeit München", "ESG München"
+- Instead of "Data Engineer Berlin", "Data Scientist Berlin", "ML Engineer Berlin" → just "Data Engineering Berlin", "Machine Learning Berlin"
 
-A) If the location is a CITY (e.g. "München", "Amsterdam"):
-   1. Queries 1-5: Exact role titles + local city name
-   2. Queries 6-10: Broader role synonyms + city
-   3. Queries 11-15: Industry/domain keywords without city or with "remote"
-   4. Queries 16-20: Very broad industry terms
+**Strategy:**
+1. Identify 3-5 broad domain/skill keywords from the candidate's profile (e.g. "Nachhaltigkeit", "ESG", "Data Engineering")
+2. Combine each keyword with the target location (city or country in local language)
+3. Include BOTH English and local-language keywords where relevant
+4. Keep each query to 1-2 words + location
 
-B) If the location is a COUNTRY (e.g. "Germany", "Netherlands"):
-   1. Queries 1-5: Exact role titles + local country name (e.g. "Data Engineer Deutschland")
-   2. Queries 6-10: Same roles + major cities in that country (e.g. "Backend Developer München", "Backend Developer Berlin")
-   3. Queries 11-15: Broader role synonyms + country or "remote"
-   4. Queries 16-20: Very broad industry terms
-
-C) If the location is "remote", "worldwide", or similar:
-   1. Queries 1-10: Exact role titles + "remote" (e.g. "Data Engineer remote")
-   2. Queries 11-15: Broader role synonyms + "remote"
-   3. Queries 16-20: Very broad industry terms without any location
-
-Additional strategy:
-- Include BOTH English and local-language job titles for the target country
-- Use different synonyms for the same role (e.g., "Manager", "Lead", "Specialist", "Analyst")
-
-Return ONLY a JSON array of 20 search query strings, no explanation."""
+Return ONLY a JSON array of 10 search query strings, no explanation."""
 
 # System prompt for keyword-only queries used with Bundesagentur für Arbeit API.
 # The BA API has a dedicated ``wo`` (where) parameter, so queries must NOT
 # contain any location tokens.
 BA_HEADHUNTER_SYSTEM_PROMPT = """You are a Search Specialist generating keyword queries for the German Federal Employment Agency job search API (Bundesagentur für Arbeit).
 
-Based on the candidate's profile, generate distinct keyword queries to find relevant job openings. The API searches across German job listings and handles location filtering separately.
+Based on the candidate's profile, generate 10 broad domain/skill keyword queries to find relevant job openings. Use broad terms, NOT specific role titles — the screening step will filter results later.
 
 IMPORTANT RULES:
-- Queries must be SHORT: 1-3 words ONLY
+- Queries must be SHORT: 1-2 words ONLY
 - Do NOT include any city, region, or country names — location is handled by the API
 - Do NOT include "remote", "hybrid", or similar work-mode keywords
-- Include BOTH German and English job titles (the API indexes both)
-- Use different synonyms for the same role
+- Include BOTH German and English keywords (the API indexes both)
+- Use broad domain/skill terms, not specific job titles
 
-Strategy:
-1. First third: Exact role titles in German (e.g., "Softwareentwickler", "Datenanalyst", "Projektleiter")
-2. Second third: Exact role titles in English (e.g., "Software Developer", "Data Analyst", "Project Manager")
-3. Final third: Technology + role combinations and broader terms (e.g., "Python Entwickler", "Machine Learning", "DevOps Engineer")
+**Examples of good broad queries:**
+- Instead of "Softwareentwickler", "Backend Developer", "Frontend Entwickler" → "Software", "Webentwicklung"
+- Instead of "Nachhaltigkeitsberater", "ESG Analyst", "Sustainability Consultant" → "Nachhaltigkeit", "Sustainability", "ESG"
 
-Return ONLY a JSON array of search query strings, no explanation."""
+Return ONLY a JSON array of 10 search query strings, no explanation."""
 
 
 def profile_candidate(client: genai.Client, cv_text: str) -> CandidateProfile:
@@ -199,7 +185,7 @@ def generate_search_queries(
     client: genai.Client,
     profile: CandidateProfile,
     location: str = "",
-    num_queries: int = 20,
+    num_queries: int = 10,
     *,
     provider: SearchProvider | None = None,
 ) -> list[str]:
