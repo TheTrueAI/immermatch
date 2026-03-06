@@ -751,6 +751,23 @@ else:
                         key="save_profile_btn",
                         type="primary",
                     ):
+                        _new_skills = [s.strip() for s in (_edit_skills or "").split(",") if s.strip()]
+                        _new_roles = [r.strip() for r in (_edit_roles or "").split(",") if r.strip()]
+                        _prefs_str = (_edit_prefs or "").strip()
+                        _changed = (
+                            _new_skills != _profile.skills
+                            or _new_roles != _profile.roles
+                            or _prefs_str != _profile.preferences
+                        )
+                        st.session_state.profile = _profile.model_copy(
+                            update={
+                                "skills": _new_skills or _profile.skills,
+                                "roles": _new_roles or _profile.roles,
+                                "preferences": _prefs_str,
+                            }
+                        )
+                        if _changed:
+                            st.session_state.queries = None
                         st.session_state.profile_edit_enabled = False
                         st.rerun()
 
@@ -1352,34 +1369,66 @@ if st.session_state.evaluated_jobs is not None:
 
     # -- Manage Subscription -----------------------------------------------
     with st.expander("Manage Subscription", expanded=False):
-        with st.form("manage_sub_lookup_form"):
+        _qp_manage_token = st.query_params.get("manage_token", "")
+        _manage_token = _qp_manage_token[0] if isinstance(_qp_manage_token, list) else _qp_manage_token
+        if _manage_token and st.session_state.get("_manage_token_checked") != _manage_token:
+            try:
+                from immermatch.db import get_admin_client as _get_manage_db
+                from immermatch.db import get_subscriber_by_manage_token as _get_sub_by_manage_token
+
+                _manage_db = _get_manage_db()
+                _token_sub = _get_sub_by_manage_token(_manage_db, _manage_token)
+                if _token_sub:
+                    st.session_state["_manage_sub_data"] = _token_sub
+                    st.session_state["_manage_token_value"] = _manage_token
+                else:
+                    st.session_state.pop("_manage_sub_data", None)
+                    st.session_state.pop("_manage_token_value", None)
+                    st.warning("This manage link is invalid or expired. Request a new one below.")
+            except Exception:
+                logger.exception("Manage subscription token lookup error")
+                st.error("Could not load subscription. Please try again later.")
+            finally:
+                st.session_state["_manage_token_checked"] = _manage_token
+
+        with st.form("manage_sub_link_form"):
             _manage_email = st.text_input(
                 "Your email",
                 placeholder="Enter your subscribed email",
                 key="manage_sub_email",
             )
-            _lookup_btn = st.form_submit_button("Look up subscription")
+            _send_manage_link_btn = st.form_submit_button("Email secure manage link")
 
-        if _lookup_btn and _manage_email:
+        if _send_manage_link_btn and _manage_email:
             try:
                 from immermatch.db import get_admin_client as _get_manage_db
                 from immermatch.db import get_subscriber_by_email as _get_sub_by_email
+                from immermatch.db import issue_manage_token as _issue_manage_token
+                from immermatch.emailer import send_manage_subscription_email as _send_manage_subscription_email
 
                 _manage_db = _get_manage_db()
                 _manage_sub = _get_sub_by_email(_manage_db, _manage_email.strip())
                 if _manage_sub and _manage_sub.get("is_active"):
-                    st.session_state["_manage_sub_data"] = _manage_sub
-                elif _manage_sub:
-                    st.info("This subscription is not active.")
-                    st.session_state.pop("_manage_sub_data", None)
-                else:
-                    st.info("No subscription found for this email.")
-                    st.session_state.pop("_manage_sub_data", None)
+                    _manage_token_value = secrets.token_urlsafe(32)
+                    _manage_expires = (datetime.now(timezone.utc) + timedelta(minutes=30)).isoformat()
+                    _issued = _issue_manage_token(
+                        _manage_db,
+                        _manage_sub["id"],
+                        token=_manage_token_value,
+                        expires_at=_manage_expires,
+                    )
+                    if _issued:
+                        _app_url = os.environ.get("APP_URL", "").rstrip("/")
+                        if _app_url:
+                            _manage_url = f"{_app_url}/?manage_token={_manage_token_value}"
+                            _send_manage_subscription_email(_manage_email.strip(), _manage_url)
+                st.success("If an active subscription exists for this email, we sent you a secure manage link.")
             except Exception:
-                logger.exception("Manage subscription error")
-                st.error("Could not load subscription. Please try again later.")
+                logger.exception("Manage subscription link request error")
+                st.error("Could not process your request. Please try again later.")
 
         _manage_sub = st.session_state.get("_manage_sub_data")
+        _manage_token_value = st.session_state.get("_manage_token_value")
         if _manage_sub:
             _current_min = _manage_sub.get("min_score") or 70
             _current_cadence = _manage_sub.get("cadence") or "daily"
@@ -1402,19 +1451,29 @@ if st.session_state.evaluated_jobs is not None:
                 _save_prefs = st.form_submit_button("Save preferences")
                 if _save_prefs:
                     try:
+                        from immermatch.db import clear_manage_token as _clear_manage_token
                         from immermatch.db import get_admin_client as _get_manage_db2
                         from immermatch.db import update_subscriber_preferences as _update_prefs
 
+                        _manage_db2 = _get_manage_db2()
                         _ok = _update_prefs(
-                            _get_manage_db2(),
+                            _manage_db2,
                             _manage_sub["id"],
                             min_score=_pref_score,
                             cadence=_pref_cadence,
                         )
                         if _ok:
+                            _clear_manage_token(_manage_db2, _manage_sub["id"])
+                            st.session_state.pop("_manage_sub_data", None)
+                            st.session_state.pop("_manage_token_value", None)
+                            st.session_state.pop("_manage_token_checked", None)
+                            if "manage_token" in st.query_params:
+                                del st.query_params["manage_token"]
                             st.success("Preferences saved.")
                         else:
                             st.error("Could not save preferences. Please try again.")
                     except Exception:
                         logger.exception("Manage subscription save error")
                         st.error("Could not save preferences. Please try again later.")
+        elif _manage_token or _manage_token_value:
+            st.info("Use the secure manage link from your email to update subscription preferences.")

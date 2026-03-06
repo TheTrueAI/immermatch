@@ -35,6 +35,7 @@ from immermatch.db import (
     get_sent_job_ids,
     issue_unsubscribe_token,
     log_sent_jobs,
+    mark_subscriber_last_sent,
     purge_inactive_subscribers,
     upsert_jobs,
 )
@@ -250,6 +251,7 @@ def main() -> int:
                 unsubscribe_url=unsubscribe_url,
                 target_location=sub.get("target_location", ""),
             )
+            mark_subscriber_last_sent(db, sub_id)
         except Exception:
             log.exception("  sub=%s — failed to send daily digest, continuing", sub_id)
 

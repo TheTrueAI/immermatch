@@ -195,6 +195,7 @@ class TestDailyTaskFullPipeline:
 
     @patch.dict("os.environ", {"APP_URL": "https://app.example.com"}, clear=False)
     @patch(f"{_PATCH_PREFIX}.issue_unsubscribe_token", return_value=True)
+    @patch(f"{_PATCH_PREFIX}.mark_subscriber_last_sent")
     @patch(f"{_PATCH_PREFIX}.send_daily_digest")
     @patch(f"{_PATCH_PREFIX}.log_sent_jobs")
     @patch(f"{_PATCH_PREFIX}.get_sent_job_ids", return_value=set())
@@ -221,6 +222,7 @@ class TestDailyTaskFullPipeline:
         mock_sent_ids: MagicMock,
         mock_log: MagicMock,
         mock_email: MagicMock,
+        mock_mark_last_sent: MagicMock,
         mock_unsub_token: MagicMock,
     ) -> None:
         from daily_task import main
@@ -250,9 +252,11 @@ class TestDailyTaskFullPipeline:
         email_jobs = email_args[0][1]  # second positional = jobs list
         assert len(email_jobs) == 1
         assert email_jobs[0]["score"] == 85
+        mock_mark_last_sent.assert_called_once_with(_mock_db.return_value, "sub-001")
 
     @patch.dict("os.environ", {"APP_URL": "https://app.example.com"}, clear=False)
     @patch(f"{_PATCH_PREFIX}.issue_unsubscribe_token", return_value=True)
+    @patch(f"{_PATCH_PREFIX}.mark_subscriber_last_sent")
     @patch(f"{_PATCH_PREFIX}.send_daily_digest")
     @patch(f"{_PATCH_PREFIX}.log_sent_jobs")
     @patch(f"{_PATCH_PREFIX}.get_sent_job_ids", return_value=set())
@@ -279,6 +283,7 @@ class TestDailyTaskFullPipeline:
         mock_sent_ids: MagicMock,
         mock_log: MagicMock,
         mock_email: MagicMock,
+        _mock_mark_last_sent: MagicMock,
         mock_unsub_token: MagicMock,
     ) -> None:
         """Both high and low score jobs should be logged to avoid re-evaluation."""
@@ -429,14 +434,14 @@ class TestDailyTaskWeeklyCadence:
         mock_email: MagicMock,
         mock_unsub_token: MagicMock,
     ) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime, timedelta, timezone
 
         from daily_task import main
 
         sub = _make_subscriber(sub_id="sub-weekly")
         sub["cadence"] = "weekly"
         # Last sent 2 days ago (less than 7)
-        sub["last_sent_at"] = (datetime.now(timezone.utc)).isoformat()
+        sub["last_sent_at"] = (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()
 
         job = _make_job_listing()
         mock_subs.return_value = [sub]
