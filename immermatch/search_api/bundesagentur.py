@@ -36,6 +36,7 @@ _API_KEY = "jobboerse-jobsuche"  # pragma: allowlist secret  # noqa: S105 — pu
 _DEFAULT_HEADERS = {
     "X-API-Key": _API_KEY,
     "Accept": "application/json",
+    "User-Agent": USER_AGENT,
 }
 
 # How many days back to accept listings (keeps results fresh).

@@ -5,7 +5,9 @@ import os
 
 import streamlit as st
 
-for key in ("IMPRESSUM_NAME", "IMPRESSUM_ADDRESS", "IMPRESSUM_EMAIL", "IMPRESSUM_PHONE"):
+REQUIRED_KEYS = ("IMPRESSUM_NAME", "IMPRESSUM_ADDRESS", "IMPRESSUM_EMAIL")
+
+for key in REQUIRED_KEYS:
     if key not in os.environ:
         with contextlib.suppress(KeyError, FileNotFoundError):
             os.environ[key] = st.secrets[key]
@@ -13,7 +15,6 @@ for key in ("IMPRESSUM_NAME", "IMPRESSUM_ADDRESS", "IMPRESSUM_EMAIL", "IMPRESSUM
 _name = os.environ.get("IMPRESSUM_NAME", "")
 _address = os.environ.get("IMPRESSUM_ADDRESS", "")
 _email = os.environ.get("IMPRESSUM_EMAIL", "")
-_phone = os.environ.get("IMPRESSUM_PHONE", "")
 
 st.set_page_config(page_title="Immermatch – Legal Notice", page_icon="⚖️")
 
@@ -21,13 +22,8 @@ st.title("Legal Notice / Impressum")
 st.caption("Information pursuant to § 5 DDG (Digitale-Dienste-Gesetz)")
 
 if not all((_name, _address, _email)):
-    st.warning(
-        "Impressum contact details are not configured. "
-        "Set IMPRESSUM_NAME, IMPRESSUM_ADDRESS, IMPRESSUM_EMAIL, "
-        "and IMPRESSUM_PHONE."
-    )
-
-_phone_line = f"Phone: {_phone}" if _phone else ""
+    required_keys_text = ", ".join(REQUIRED_KEYS[:-1]) + f", and {REQUIRED_KEYS[-1]}"
+    st.warning(f"Impressum contact details are not configured. Set {required_keys_text}.")
 
 st.markdown(f"""
 **{_name}**
@@ -35,8 +31,6 @@ st.markdown(f"""
 {_address}
 
 Email: {_email}
-
-{_phone_line}
 
 ---
 
