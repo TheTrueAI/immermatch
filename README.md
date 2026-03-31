@@ -1,6 +1,6 @@
 # Immermatch
 
-[![CI](https://github.com/TheTrueAI/immermatch/actions/workflows/ci.yml/badge.svg)](https://github.com/TheTrueAI/immermatch/actions/workflows/ci.yml)
+[![Daily Digest to Users](https://github.com/TheTrueAI/immermatch/actions/workflows/daily-digest.yml/badge.svg)](https://github.com/TheTrueAI/immermatch/actions/workflows/daily-digest.yml)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-green.svg)](https://www.python.org/)
 

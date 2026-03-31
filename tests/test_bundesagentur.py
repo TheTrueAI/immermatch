@@ -334,6 +334,7 @@ class TestBundesagenturProviderSearch:
         with (
             patch.object(provider, "_get_with_retry", return_value=mock_resp),
             patch.object(provider, "_enrich", side_effect=lambda it: [_parse_listing(i) for i in it]),
+            patch("immermatch.search_api.bundesagentur.httpx.Client"),
         ):
             jobs = provider.search("Python", "Berlin", max_results=10)
 
@@ -351,6 +352,7 @@ class TestBundesagenturProviderSearch:
         with (
             patch.object(provider, "_get_with_retry", return_value=mock_resp),
             patch.object(provider, "_enrich", side_effect=lambda it: [_parse_listing(i) for i in it]),
+            patch("immermatch.search_api.bundesagentur.httpx.Client"),
         ):
             jobs = provider.search("Niche Job", "Berlin")
         assert jobs == []
@@ -374,6 +376,7 @@ class TestBundesagenturProviderSearch:
         with (
             patch.object(provider, "_get_with_retry", return_value=mock_resp),
             patch.object(provider, "_enrich", side_effect=lambda it: [_parse_listing(i) for i in it]),
+            patch("immermatch.search_api.bundesagentur.httpx.Client"),
         ):
             jobs = provider.search("Dev", "Berlin", max_results=3)
 
