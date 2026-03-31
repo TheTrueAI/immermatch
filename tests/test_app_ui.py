@@ -144,12 +144,14 @@ class TestPhaseBTransitionClarity:
 
     @patch.dict("os.environ", _FAKE_ENV, clear=False)
     @patch("streamlit.rerun", return_value=None)
+    @patch("immermatch.llm.create_client", return_value=MagicMock())
     @patch("immermatch.db.get_admin_client", return_value=MagicMock())
     @patch("immermatch.db.purge_inactive_subscribers", return_value=0)
     def test_queries_render_in_status_during_active_run(
         self,
         _mock_purge: MagicMock,
         _mock_db: MagicMock,
+        _mock_llm: MagicMock,
         _mock_rerun: MagicMock,
         tmp_path: Path,
         monkeypatch,

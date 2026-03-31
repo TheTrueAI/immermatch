@@ -53,6 +53,8 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)-8s  %(message)s",
 )
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 log = logging.getLogger("daily_task")
 
 
@@ -111,10 +113,10 @@ def main() -> int:
     )
 
     # ── 5. Search once per unique (query-set, location) ──────────────────
-    # Collect all jobs keyed by title|company_name|location to avoid duplication
-    all_jobs: dict[str, JobListing] = {}
-    # Track which URLs belong to which normalized location
+    # URL is the source of truth for DB upserts and per-subscriber processing.
+    # Track URLs per normalized location and keep one JobListing per URL.
     location_urls: dict[str, set[str]] = defaultdict(set)
+    url_to_job: dict[str, JobListing] = {}
 
     for loc, queries in location_queries.items():
         query_list = sorted(queries)  # deterministic order
@@ -125,35 +127,28 @@ def main() -> int:
             location=loc,
         )
         for job in found:
-            key = f"{job.title}|{job.company_name}|{job.location}"
-            if key not in all_jobs:
-                all_jobs[key] = job
             url = _listing_url(job)
             if url:
                 location_urls[loc].add(url)
+                url_to_job.setdefault(url, job)
 
-    log.info("Found %d unique jobs total", len(all_jobs))
-    if not all_jobs:
+    log.info("Found %d unique job URLs total", len(url_to_job))
+    if not url_to_job:
         log.info("No jobs found — exiting.")
         return 0
 
     # ── 6. Upsert all jobs into DB (with descriptions) ───────────────────
-    jobs_list = list(all_jobs.values())
-    job_dicts = []
-    url_to_job: dict[str, JobListing] = {}
-    for job in jobs_list:
-        url = _listing_url(job)
-        if url:
-            url_to_job[url] = job
-            job_dicts.append(
-                {
-                    "title": job.title,
-                    "company": job.company_name,
-                    "url": url,
-                    "location": job.location,
-                    "description": job.description,
-                }
-            )
+
+    job_dicts = [
+        {
+            "title": job.title,
+            "company": job.company_name,
+            "url": url,
+            "location": job.location,
+            "description": job.description,
+        }
+        for url, job in url_to_job.items()
+    ]
 
     if job_dicts:
         upsert_jobs(db, job_dicts)
