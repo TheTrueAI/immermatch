@@ -15,7 +15,7 @@ from google.genai.errors import ClientError, ServerError
 MAX_RETRIES = 5
 BASE_DELAY = 3  # seconds
 
-MODEL = "gemini-3.1-flash-lite-preview"
+MODEL = "gemini-3.1-flash-lite"
 
 # Concurrency limiter — prevents thundering-herd 429s when many threads
 # call Gemini simultaneously (e.g. parallel job evaluation).
