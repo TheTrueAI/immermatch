@@ -4,6 +4,7 @@ Tests the page logic by mocking all DB calls.
 Uses Streamlit's AppTest framework to run the page script.
 """
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from streamlit.testing.v1 import AppTest
@@ -14,7 +15,7 @@ _FAKE_ENV = {
     "SUPABASE_SERVICE_KEY": "fake-service-key",  # pragma: allowlist secret
 }
 
-PAGE_FILE = "immermatch/pages/unsubscribe.py"
+PAGE_FILE = str(Path(__file__).resolve().parents[1] / "immermatch" / "pages" / "unsubscribe.py")
 
 
 def _build_app(token: str | None = None) -> AppTest:
