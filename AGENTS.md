@@ -119,6 +119,7 @@ The search pipeline uses a pluggable `SearchProvider` protocol (defined in `imme
 ```python
 class SearchProvider(Protocol):
     name: str
+
     def search(self, query: str, location: str, max_results: int = 50) -> list[JobListing]: ...
 ```
 
@@ -222,7 +223,7 @@ BA_API_KEY = "jobboerse-jobsuche"  # pragma: allowlist secret  # public API key,
 # SerpApi Google Jobs parameters (retained for future non-German markets)
 SERPAPI_PARAMS = {
     "engine": "google_jobs",
-    "hl": "en",           # Language: English (for broader results)
+    "hl": "en",  # Language: English (for broader results)
     "chips": "date_posted:week",  # Temporal freshness filter
 }
 # gl= country code is inferred from location (see _infer_gl())
@@ -270,37 +271,41 @@ All models use `Field()` with descriptions and defaults where appropriate.
 
 ```python
 class WorkEntry(BaseModel):
-    title: str                           # job title held
-    company: str                         # employer name
-    start_date: str                      # e.g. "2020-03" or "2020"
-    end_date: str | None = None          # null = current role
-    duration_months: int | None = None   # estimated from dates
-    skills_used: list[str] = []          # skills exercised in this role
-    description: str = ""                # one-sentence summary
+    title: str  # job title held
+    company: str  # employer name
+    start_date: str  # e.g. "2020-03" or "2020"
+    end_date: str | None = None  # null = current role
+    duration_months: int | None = None  # estimated from dates
+    skills_used: list[str] = []  # skills exercised in this role
+    description: str = ""  # one-sentence summary
+
 
 class EducationEntry(BaseModel):
-    degree: str                          # e.g. "MSc Computer Science"
-    institution: str = ""                # university / school
+    degree: str  # e.g. "MSc Computer Science"
+    institution: str = ""  # university / school
     start_date: str | None = None
-    end_date: str | None = None          # null = still studying
+    end_date: str | None = None  # null = still studying
     status: Literal["completed", "in_progress", "dropped"] = "completed"
 
+
 class CandidateProfile(BaseModel):
-    skills: list[str]                    # 15-20 hard skills
+    skills: list[str]  # 15-20 hard skills
     experience_level: Literal["Junior", "Mid", "Senior", "Lead", "CTO"]
-    years_of_experience: int = 0         # calculated from work history
-    roles: list[str]                     # 5 titles, EN + local language
-    languages: list[str]                 # with proficiency levels
+    years_of_experience: int = 0  # calculated from work history
+    roles: list[str]  # 5 titles, EN + local language
+    languages: list[str]  # with proficiency levels
     domain_expertise: list[str]
-    certifications: list[str] = []       # empty list if none
-    education: list[str] = []            # degree + university
-    summary: str = ""                    # 2-3 sentence professional summary
-    work_history: list[WorkEntry] = []   # chronological, most recent first
+    certifications: list[str] = []  # empty list if none
+    education: list[str] = []  # degree + university
+    summary: str = ""  # 2-3 sentence professional summary
+    work_history: list[WorkEntry] = []  # chronological, most recent first
     education_history: list[EducationEntry] = []  # with completion status
 
+
 class ApplyOption(BaseModel):
-    source: str                          # e.g., "LinkedIn", "Company Website"
-    url: str                             # direct application URL
+    source: str  # e.g., "LinkedIn", "Company Website"
+    url: str  # direct application URL
+
 
 class JobListing(BaseModel):
     title: str
@@ -309,14 +314,16 @@ class JobListing(BaseModel):
     description: str = ""
     link: str = ""
     posted_at: str = ""
-    source: str = ""                     # search provider that produced this listing
+    source: str = ""  # search provider that produced this listing
     apply_options: list[ApplyOption] = []  # direct apply links (LinkedIn, career page, etc.)
     reliability: Literal["verified", "aggregator", "unverified"] = "unverified"  # source trust level
 
+
 class JobEvaluation(BaseModel):
-    score: int                           # 0-100, constrained ge=0 le=100
+    score: int  # 0-100, constrained ge=0 le=100
     reasoning: str
     missing_skills: list[str] = []
+
 
 class EvaluatedJob(BaseModel):
     job: JobListing

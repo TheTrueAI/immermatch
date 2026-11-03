@@ -4,6 +4,7 @@ Tests the page logic by mocking all DB and emailer calls.
 Uses Streamlit's AppTest framework to run the page script.
 """
 
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from streamlit.testing.v1 import AppTest
@@ -21,7 +22,7 @@ _FAKE_ENV = {
     "IMPRESSUM_EMAIL": "info@test.de",
 }
 
-PAGE_FILE = "immermatch/pages/verify.py"
+PAGE_FILE = str(Path(__file__).resolve().parents[1] / "immermatch" / "pages" / "verify.py")
 
 
 def _build_app(token: str | None = None) -> AppTest:
